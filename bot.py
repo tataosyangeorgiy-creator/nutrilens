@@ -228,7 +228,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     try:
         track = await asyncio.to_thread(search_track, query)
         await status.edit_text(f"Нашёл: {track.title}\nСкачиваю аудио…")
-        await message.chat.send_action(ChatAction.UPLOAD_AUDIO)
+        await message.chat.send_action(ChatAction.UPLOAD_DOCUMENT)
         audio_path = await asyncio.to_thread(download_track, track, workdir)
 
         with audio_path.open("rb") as audio:
