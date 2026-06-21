@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.request import HTTPXRequest
 from yt_dlp import YoutubeDL
 
 
@@ -28,6 +29,8 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 DOWNLOAD_DIR = Path(os.getenv("DOWNLOAD_DIR", "downloads"))
 MAX_FILE_MB = int(os.getenv("MAX_FILE_MB", "45"))
 SEARCH_RESULTS = int(os.getenv("SEARCH_RESULTS", "5"))
+TELEGRAM_TIMEOUT = float(os.getenv("TELEGRAM_TIMEOUT", "30"))
+TELEGRAM_PROXY_URL = os.getenv("TELEGRAM_PROXY_URL")
 MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
 
 URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
@@ -251,7 +254,15 @@ def main() -> None:
 
     DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-    application = Application.builder().token(TOKEN).build()
+    request = HTTPXRequest(
+        connect_timeout=TELEGRAM_TIMEOUT,
+        read_timeout=TELEGRAM_TIMEOUT,
+        write_timeout=TELEGRAM_TIMEOUT,
+        pool_timeout=TELEGRAM_TIMEOUT,
+        media_write_timeout=TELEGRAM_TIMEOUT,
+        proxy_url=TELEGRAM_PROXY_URL,
+    )
+    application = Application.builder().token(TOKEN).request(request).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
